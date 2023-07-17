@@ -14,6 +14,7 @@ const mssql = require("mssql");
 const { Client } = require("pg");
 const postgresConParse = require("pg-connection-string").parse;
 const mysql = require("mysql2");
+const ibmdb = require("ibm_db");
 const { MongoClient } = require("mongodb");
 const { NtlmClient } = require("axios-ntlm");
 const { Settings } = require("./settings");
@@ -440,6 +441,32 @@ exports.mysqlQuery = function (connectionString, query) {
                 connection.destroy();
             }
         });
+    });
+};
+
+/**
+ * Run a query on IBM DB2
+ * @param {string} connectionString The database connection string
+ * @param {string} query The query to validate the database with
+ * @returns {Promise<(string)>}
+ */
+exports.db2Query = function (connectionString, query) {
+    return new Promise((resolve, reject) => {
+        ibmdb.open(connectionString).then(
+            conn => {
+                conn.query(query).then(data => {
+                    console.log(data);
+                    resolve("Rows: " + data.length);
+                    conn.closeSync();
+                }, err => {
+                    console.log(err);
+                    reject(err);
+                });
+            }, err => {
+                console.log(err);
+                reject(err);
+            }
+        );
     });
 };
 
